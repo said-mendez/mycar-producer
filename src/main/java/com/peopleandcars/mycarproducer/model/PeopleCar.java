@@ -1,4 +1,4 @@
-package model;
+package com.peopleandcars.mycarproducer.model;
 
 import lombok.Data;
 import lombok.ToString;

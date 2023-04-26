@@ -1,4 +1,4 @@
-package com.peopleandcars.mycarproducer;
+package com.peopleandcars.mycarproducer.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;

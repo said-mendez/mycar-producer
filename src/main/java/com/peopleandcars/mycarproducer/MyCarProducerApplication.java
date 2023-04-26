@@ -1,22 +1,35 @@
 package com.peopleandcars.mycarproducer;
 
-import model.People;
-import model.PeopleCar;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.peopleandcars.mycarproducer.config.PeopleAndCarConfiguration;
+import com.peopleandcars.mycarproducer.model.Car;
+import com.peopleandcars.mycarproducer.peopleandcarfilereader.FileProvider;
+import com.peopleandcars.mycarproducer.peopleandcarfilereader.PeopleAndCarFileReader;
+import com.peopleandcars.mycarproducer.publishers.CarPublisher;
+import com.peopleandcars.mycarproducer.publishers.PeopleCarPublisher;
+import com.peopleandcars.mycarproducer.publishers.PeoplePublisher;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.UUID;
-
 @SpringBootApplication
 public class MyCarProducerApplication implements CommandLineRunner {
-	@Autowired
 	private CarPublisher carPublisher;
-	@Autowired
 	private PeoplePublisher peoplePublisher;
-	@Autowired
 	private PeopleCarPublisher peopleCarPublisher;
+	private PeopleAndCarConfiguration peopleAndCarConfiguration;
+	public static final Character CSV = ',';
+	public static final Character TABS = '\t';
+
+
+	public MyCarProducerApplication(CarPublisher carPublisher,
+									PeoplePublisher peoplePublisher,
+									PeopleCarPublisher peopleCarPublisher,
+									PeopleAndCarConfiguration peopleAndCarConfiguration) {
+		this.carPublisher = carPublisher;
+		this.peoplePublisher = peoplePublisher;
+		this.peopleCarPublisher = peopleCarPublisher;
+		this.peopleAndCarConfiguration = peopleAndCarConfiguration;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(MyCarProducerApplication.class, args);
@@ -24,35 +37,32 @@ public class MyCarProducerApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String ...strings) throws Exception {
-		for (int i = 1; i < 6; i++) {
-//			Car car = new Car();
-//			car.setVin(UUID.randomUUID().toString());
-//			car.setYear(2023);
-//			car.setBrand("Brand " + i);
-//			car.setModel("Model " + i);
-//			car.setColor("Color " + i);
-//			carPublisher.publish(car);
-
-//			People people = new People();
-//			people.setGuid(UUID.randomUUID().toString());
-//			people.setFirstName("Name " + i);
-//			people.setLastName("Last " + i);
-//			people.setEmail("email" + i + "@mail.com");
-//			people.setGender("Gender " + i);
-//			peoplePublisher.publish(people);
+		PeopleAndCarFileReader<Car> carrFileReader = new PeopleAndCarFileReader(carPublisher, new FileProvider(peopleAndCarConfiguration.getCars().getPath()), CSV);
+		int carThreadsCount = peopleAndCarConfiguration.getCars().getThreadsCount();
+		String carThreadPrefix = peopleAndCarConfiguration.getCars().getThreadPrefix();
+		for (int i = 1; i <= carThreadsCount; i++) {
+			Thread thread = new Thread(carrFileReader);
+			thread.setName(carThreadPrefix + "-" + i);
+			thread.start();
 		}
 
-		PeopleCar peopleCar = new PeopleCar();
-		peopleCar.setUuid(UUID.randomUUID().toString());
-		peopleCar.setCarId("bef36085-c952-4824-83c8-1b29ffb82b84");
-		peopleCar.setPeopleId("107facb5-5027-4d26-9f1b-ba54da305644");
-		peopleCarPublisher.publish(peopleCar);
+		PeopleAndCarFileReader<Car> peopleFileReader = new PeopleAndCarFileReader(peoplePublisher, new FileProvider(peopleAndCarConfiguration.getPeople().getPath()), CSV);
+		int peopleThreadsCount = peopleAndCarConfiguration.getPeople().getThreadsCount();
+		String peopleThreadPrefix = peopleAndCarConfiguration.getPeople().getThreadPrefix();
+		for (int i = 1; i <= peopleThreadsCount; i++) {
+			Thread thread = new Thread(peopleFileReader);
+			thread.setName(peopleThreadPrefix + "-" + i);
+			thread.start();
+		}
 
-		PeopleCar peopleCar1 = new PeopleCar();
-		peopleCar1.setUuid(UUID.randomUUID().toString());
-		peopleCar1.setCarId("0dceb20a-6400-4ba6-9d51-5e67b881480b");
-		peopleCar1.setPeopleId("9f699072-3de9-4b4a-a2eb-13bb1a54e0a4");
-		peopleCarPublisher.publish(peopleCar1);
+		PeopleAndCarFileReader<Car> peopleCarFileReader = new PeopleAndCarFileReader(peopleCarPublisher, new FileProvider(peopleAndCarConfiguration.getRelations().getPath()), TABS);
+		int peopleCarThreadsCount = peopleAndCarConfiguration.getRelations().getThreadsCount();
+		String peopleCarThreadPrefix = peopleAndCarConfiguration.getRelations().getThreadPrefix();
+		for (int i = 1; i <= peopleCarThreadsCount; i++) {
+			Thread thread = new Thread(peopleCarFileReader);
+			thread.setName(peopleCarThreadPrefix + "-" + i);
+			thread.start();
+		}
 	}
 
 }

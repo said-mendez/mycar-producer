@@ -1,0 +1,13 @@
+process:
+  people:
+    path: "/Users/eduardo.mendez/my-car-producer/data/people"
+    threads-count: 3
+    thread-prefix: "people"
+  cars:
+    path: "/Users/eduardo.mendez/my-car-producer/data/car"
+    threads-count: 4
+    thread-prefix: "cars"
+  relations:
+    path: "/Users/eduardo.mendez/my-car-producer/data"
+    threads-count: 5
+    thread-prefix: "relations"
