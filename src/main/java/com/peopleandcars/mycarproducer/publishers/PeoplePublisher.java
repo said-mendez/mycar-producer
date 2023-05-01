@@ -6,6 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 @Slf4j
 @Component
 public class PeoplePublisher implements Publisher<People> {
@@ -18,6 +22,11 @@ public class PeoplePublisher implements Publisher<People> {
     @Override
     public void publish(People people) {
         log.info("Publishing people: {}", Thread.currentThread().getName());
+        try {
+            logToFile("Publishing people: " + Thread.currentThread().getName());
+        } catch (IOException ioException) {
+            log.error("IOException: ", ioException);
+        }
         rabbitTemplate.convertAndSend(QueuesConfig.EXCHANGE, QueuesConfig.PEOPLE_ROUTING_KEY, people);
     }
 
@@ -30,5 +39,12 @@ public class PeoplePublisher implements Publisher<People> {
         people.setEmail(row[3]);
         people.setGender(row[4]);
         return people;
+    }
+
+    public void logToFile(String log) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter("/Users/eduardo.mendez/my-car-producer/data/log.txt", true));
+        writer.newLine();
+        writer.append(log);
+        writer.close();
     }
 }

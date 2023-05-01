@@ -14,34 +14,34 @@ import java.io.IOException;
 
 @Slf4j
 public class PeopleAndCarFileReader<T> implements Runnable {
-    private CarPublisher carPublisher;
-    private Publisher<T> publisher;
+//    private Publisher<T> publisher;
     private FileProvider fileProvider;
     private Character fileSeparator;
+    private PeopleAndCarReader<T> peopleAndCarReader;
 
-    public PeopleAndCarFileReader(Publisher<T> publisher, FileProvider fileProvider, Character fileSeparator) {
-        this.publisher = publisher;
+    public PeopleAndCarFileReader(FileProvider fileProvider, PeopleAndCarReader<T> peopleAndCarReader) {
         this.fileProvider = fileProvider;
-        this.fileSeparator = fileSeparator;
+        this.peopleAndCarReader = peopleAndCarReader;
     }
 
     @Override
     public void run() {
         String path;
         while ((path = fileProvider.getNext()) != null) {
-            try {
-                CSVReader reader = new CSVReaderBuilder(new FileReader(path))
-                        .withCSVParser(new CSVParserBuilder()
-                                .withSeparator(fileSeparator)
-                                .build())
-                        .withSkipLines(1).build();
-                String [] nextLine;
-                while ((nextLine = reader.readNext()) != null) {
-                    publisher.publish(publisher.generate(nextLine));
-                }
-            } catch(IOException | CsvValidationException exception) {
-                log.error("Error reading CSV: ", exception);
-            }
+            peopleAndCarReader.read(path);
+//            try {
+//                CSVReader reader = new CSVReaderBuilder(new FileReader(path))
+//                        .withCSVParser(new CSVParserBuilder()
+//                                .withSeparator(fileSeparator)
+//                                .build())
+//                        .withSkipLines(1).build();
+//                String [] nextLine;
+//                while ((nextLine = reader.readNext()) != null) {
+//                    publisher.publish(publisher.generate(nextLine));
+//                }
+//            } catch(IOException | CsvValidationException exception) {
+//                log.error("Error reading CSV: ", exception);
+//            }
         }
     }
 
